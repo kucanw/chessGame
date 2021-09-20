@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,13 +12,13 @@ public class GameManager : MonoBehaviour
 
     public Board board;
 
+    [Header("Pieces")]
     public GameObject whiteKing;
     public GameObject whiteQueen;
     public GameObject whiteBishop;
     public GameObject whiteKnight;
     public GameObject whiteRook;
     public GameObject whitePawn;
-
     public GameObject blackKing;
     public GameObject blackQueen;
     public GameObject blackBishop;
@@ -31,6 +33,16 @@ public class GameManager : MonoBehaviour
     private Player black;
     public Player currentPlayer;
     public Player otherPlayer;
+
+    [Header("Sounds")]
+    public AudioSource audioSource;
+    public AudioClip pieceEaten;
+    public AudioClip endGame;
+
+    [Header("Text & Buttons")]
+    public Text win;
+    public Button mainMenu;
+    
 
     void Awake()
     {
@@ -51,6 +63,7 @@ public class GameManager : MonoBehaviour
         InitialSetup();
 
         blackPlayer.gameObject.SetActive(false);
+        mainMenu.gameObject.SetActive(false);
     }
 
     private void InitialSetup()
@@ -139,12 +152,15 @@ public class GameManager : MonoBehaviour
         return movedPawns.Contains(pawn);
     }
 
+    //If king is captured
     public void CapturePieceAt(Vector2Int gridPoint)
     {
         GameObject pieceToCapture = PieceAtGrid(gridPoint);
         if (pieceToCapture.GetComponent<Piece>().type == PieceType.King)
         {
-            Debug.Log(currentPlayer.name + " wins!");
+            win.text = currentPlayer.name + " wins!";
+            mainMenu.gameObject.SetActive(true);
+            StartCoroutine(endGameSound());
             Destroy(board.GetComponent<TileSelector>());
             Destroy(board.GetComponent<MoveSelector>());
         }
@@ -214,6 +230,8 @@ public class GameManager : MonoBehaviour
         Player tempPlayer = currentPlayer;
         currentPlayer = otherPlayer;
         otherPlayer = tempPlayer;
+        audioSource.clip = pieceEaten;
+        audioSource.Play();
 
         if(whitePlayer.gameObject.activeSelf == true)
         {
@@ -226,5 +244,12 @@ public class GameManager : MonoBehaviour
             whitePlayer.gameObject.SetActive(true);
             blackPlayer.gameObject.SetActive(false);
         }
+    }
+
+    IEnumerator endGameSound()
+    {
+        yield return new WaitForSeconds(1);
+        audioSource.clip = endGame;
+        audioSource.Play();
     }
 }
